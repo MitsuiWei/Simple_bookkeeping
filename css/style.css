@@ -58,12 +58,16 @@ svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
   display: flex;
   flex-direction: column;
 }
-@media (min-width: 420px) {
+/* 手機（含 393 / 402 / 430pt 等機型）一律填滿整個寬度；只有桌機才置中成手機寬 */
+@media (max-width: 599px) {
+  .app { max-width: none; }
+}
+@media (min-width: 600px) {
   .app { box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 0 40px rgba(0,0,0,.12); }
 }
 /* iOS 加到主畫面後，狀態列顏色是取樣頁面最上緣「固定定位、全寬、不透明」的元素；
    放一條棕色細帶在最上面（被 App bar 蓋住，看不到），讓狀態列跟 App bar 同色。 */
-@media (max-width: 419px) {
+@media (max-width: 599px) {
   body::before {
     content: "";
     position: fixed;
