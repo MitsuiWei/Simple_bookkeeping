@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>簡單記帳</title>
+<meta name="description" content="離線可用的個人記帳 PWA，資料只存在你的瀏覽器裡。">
+<meta name="theme-color" content="#A38062">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<!-- iOS 加到主畫面所需 -->
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="簡單記帳">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<!-- SVG 圖示庫（Material 風格線條，與截圖的圖示樣式一致） -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></symbol>
+  <symbol id="i-add" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></symbol>
+  <symbol id="i-listnum" viewBox="0 0 24 24"><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13zM6 10h5v5H6z"/></symbol>
+  <symbol id="i-backspace" viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></symbol>
+  <symbol id="i-drag" viewBox="0 0 24 24"><path d="M20 9H4v2h16V9zM4 15h16v-2H4v2z"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M17 19.22H5V7h7V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-7h-2v7.22zM19 2h-2v3h-3v2h3v3h2V7h3V5h-3V2zM7 9h6v2H7zm0 3v2h8v-2zm0 3h8v2H7z"/></symbol>
+  <symbol id="i-delete" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></symbol>
+</svg>
+
+<div id="app" class="app">
+
+  <!-- ===== 新增 / 編輯紀錄 ===== -->
+  <section class="view is-active" id="view-add" data-tab="add">
+    <header class="appbar">
+      <button class="icon-btn appbar-back" id="add-back" aria-label="返回" hidden><svg><use href="#i-back"/></svg></button>
+      <h1 class="appbar-title" id="add-title">簡單記帳</h1>
+      <div class="appbar-actions">
+        <button class="icon-btn" id="add-delete" aria-label="刪除紀錄" hidden><svg><use href="#i-delete"/></svg></button>
+        <button class="icon-btn" id="btn-settings" aria-label="設定"><svg><use href="#i-settings"/></svg></button>
+      </div>
+    </header>
+    <div class="view-body">
+      <div class="seg" id="add-seg">
+        <span class="seg-thumb"></span>
+        <button class="seg-btn is-active" data-type="expense">支出</button>
+        <span class="seg-divider"></span>
+        <button class="seg-btn" data-type="income">收入</button>
+      </div>
+      <div class="chips chips-wrap" id="add-cats"></div>
+      <label class="field">
+        <span class="field-label">內容</span>
+        <input class="field-input" id="add-name" type="text" placeholder="花在哪裡？" autocomplete="off" enterkeyhint="done">
+      </label>
+      <div class="amount-row">
+        <button class="date-btn" id="add-date-btn" type="button">
+          <svg><use href="#i-calendar"/></svg><span id="add-date-label">今天</span>
+        </button>
+        <input type="date" id="add-date" class="visually-hidden" tabindex="-1">
+        <div class="amount-box" id="add-amount-box">
+          <span class="amount-sign">$</span>
+          <span class="amount-value" id="add-amount">0</span>
+        </div>
+      </div>
+    </div>
+    <div class="keypad" id="keypad">
+      <button class="key" data-k="7">7</button>
+      <button class="key" data-k="8">8</button>
+      <button class="key" data-k="9">9</button>
+      <button class="key key-op" data-k="/">÷</button>
+      <button class="key key-dark" data-k="AC">AC</button>
+      <button class="key" data-k="4">4</button>
+      <button class="key" data-k="5">5</button>
+      <button class="key" data-k="6">6</button>
+      <button class="key key-op" data-k="*">×</button>
+      <button class="key key-dark key-ok" data-k="OK">OK</button>
+      <button class="key" data-k="1">1</button>
+      <button class="key" data-k="2">2</button>
+      <button class="key" data-k="3">3</button>
+      <button class="key key-op" data-k="-">−</button>
+      <button class="key" data-k=".">.</button>
+      <button class="key" data-k="0">0</button>
+      <button class="key" data-k="BS" aria-label="退格"><svg><use href="#i-backspace"/></svg></button>
+      <button class="key key-op" data-k="+">+</button>
+    </div>
+  </section>
+
+  <!-- ===== 總覽 ===== -->
+  <section class="view" id="view-overview" data-tab="overview">
+    <header class="appbar">
+      <h1 class="appbar-title" id="ov-title">簡單記帳總覽</h1>
+      <div class="appbar-actions">
+        <button class="icon-btn" id="ov-mode" aria-label="切換圖表／清單"><svg><use href="#i-chart"/></svg></button>
+        <button class="icon-btn" id="ov-export" aria-label="匯出這段期間"><svg><use href="#i-download"/></svg></button>
+      </div>
+    </header>
+    <div class="view-body view-scroll">
+      <div class="seg" id="ov-seg">
+        <span class="seg-thumb"></span>
+        <button class="seg-btn is-active" data-type="expense">支出</button>
+        <span class="seg-divider"></span>
+        <button class="seg-btn" data-type="income">收入</button>
+      </div>
+      <button class="range-btn" id="ov-range" type="button">
+        <svg><use href="#i-calendar"/></svg><span id="ov-range-text"></span>
+      </button>
+      <div class="chips chips-center" id="ov-presets">
+        <button class="chip" data-preset="today">本日</button>
+        <button class="chip" data-preset="week">本週</button>
+        <button class="chip is-active" data-preset="month">本月</button>
+        <button class="chip" data-preset="lastMonth">上個月</button>
+        <button class="chip chip-icon" data-preset="custom" aria-label="自訂區間"><svg><use href="#i-edit"/></svg></button>
+      </div>
+      <div class="summary">
+        <div class="summary-cell"><span class="summary-label">合計</span><span class="summary-value" id="ov-total">$0</span></div>
+        <div class="summary-cell"><span class="summary-label">結餘</span><span class="summary-value" id="ov-balance">$0</span></div>
+      </div>
+      <div id="ov-content"></div>
+    </div>
+    <button class="fab" id="btn-search" aria-label="搜尋"><svg><use href="#i-search"/></svg></button>
+  </section>
+
+  <!-- ===== 編輯類別 ===== -->
+  <section class="view view-sub" id="view-categories" data-tab="add">
+    <header class="appbar">
+      <button class="icon-btn appbar-back" id="cat-back" aria-label="返回"><svg><use href="#i-back"/></svg></button>
+      <h1 class="appbar-title">編輯類別</h1>
+      <div class="appbar-actions">
+        <button class="icon-btn" id="cat-save" aria-label="儲存"><svg><use href="#i-check"/></svg></button>
+      </div>
+    </header>
+    <div class="view-body view-scroll">
+      <div class="cat-list" id="cat-list"></div>
+      <p class="hint">拖曳左側把手可排序，點一下名稱可改名或刪除。</p>
+    </div>
+    <button class="fab" id="cat-add" aria-label="新增類別"><svg><use href="#i-add"/></svg></button>
+  </section>
+
+  <!-- ===== 搜尋 ===== -->
+  <section class="view view-sub" id="view-search" data-tab="overview">
+    <header class="appbar">
+      <button class="icon-btn appbar-back" id="search-back" aria-label="返回"><svg><use href="#i-back"/></svg></button>
+      <h1 class="appbar-title">搜尋</h1>
+    </header>
+    <div class="view-body view-scroll">
+      <label class="search-box">
+        <svg><use href="#i-search"/></svg>
+        <input id="search-input" type="search" placeholder="輸入關鍵字" autocomplete="off" enterkeyhint="search">
+      </label>
+      <div class="dropdowns">
+        <select class="dd dd-dark" id="search-type">
+          <option value="expense">支出</option>
+          <option value="income">收入</option>
+        </select>
+        <select class="dd dd-tan" id="search-cat"></select>
+        <select class="dd dd-dark" id="search-period">
+          <option value="1">過去一個月</option>
+          <option value="3">過去三個月</option>
+          <option value="6">過去半年</option>
+          <option value="12">過去一年</option>
+          <option value="0">全部期間</option>
+        </select>
+      </div>
+      <div id="search-results"></div>
+    </div>
+  </section>
+
+  <!-- ===== 設定（補充設計：截圖只有齒輪圖示，頁面內容依同一套設計語言補齊） ===== -->
+  <section class="view view-sub" id="view-settings" data-tab="add">
+    <header class="appbar">
+      <button class="icon-btn appbar-back" id="settings-back" aria-label="返回"><svg><use href="#i-back"/></svg></button>
+      <h1 class="appbar-title">設定</h1>
+    </header>
+    <div class="view-body view-scroll">
+      <label class="field">
+        <span class="field-label">帳本名稱</span>
+        <input class="field-input" id="set-ledger" type="text" placeholder="簡單記帳" autocomplete="off" maxlength="20">
+      </label>
+
+      <div class="card">
+        <div class="card-row">
+          <div>
+            <div class="card-title">匯出備份</div>
+            <div class="card-sub" id="set-last-backup">尚未備份</div>
+          </div>
+          <button class="btn" id="set-export">匯出備份</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-row">
+          <div>
+            <div class="card-title">匯入 CSV</div>
+            <div class="card-sub">支援 UTF-8（含 BOM）與 Big5</div>
+          </div>
+          <button class="btn" id="set-import">選擇檔案</button>
+          <input type="file" id="set-file" class="visually-hidden" accept=".csv,text/csv,text/plain">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-row">
+          <div>
+            <div class="card-title">資料</div>
+            <div class="card-sub" id="set-count">0 筆紀錄</div>
+          </div>
+          <span class="card-sub" id="set-persist"></span>
+        </div>
+      </div>
+
+      <p class="hint">資料只存在這支手機的這個瀏覽器裡，不會上傳到任何伺服器。換手機或清除瀏覽器資料前，請先匯出備份。</p>
+    </div>
+  </section>
+
+  <!-- ===== 底部導覽 ===== -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="nav-btn is-active" data-tab="add" aria-label="新增紀錄"><svg><use href="#i-note"/></svg></button>
+    <button class="nav-btn" data-tab="overview" aria-label="總覽"><svg><use href="#i-list"/></svg></button>
+  </nav>
+
+  <div id="dialog-root"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script src="./js/format.js"></script>
+<script src="./js/store.js"></script>
+<script src="./js/csv.js"></script>
+<script src="./js/app.js"></script>
+</body>
+</html>

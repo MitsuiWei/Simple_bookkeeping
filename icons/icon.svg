@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- 簡單記帳 icon：圓錢包。主體落在中央 80% 安全區（51–461），符合 maskable 規範 -->
+  <rect width="512" height="512" fill="#7E8072"/>
+  <!-- 錢包上蓋 -->
+  <rect x="120" y="120" width="250" height="100" rx="30" fill="#E8D5BE"/>
+  <!-- 錢包本體 -->
+  <rect x="96" y="176" width="320" height="208" rx="52" fill="#FFF2DF"/>
+  <!-- 扣環 -->
+  <rect x="300" y="244" width="116" height="72" rx="36" fill="#C0A185"/>
+  <!-- 硬幣 -->
+  <circle cx="356" cy="280" r="22" fill="#FFF2DF"/>
+</svg>
