@@ -23,8 +23,10 @@
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; margin: 0; }
+/* 整頁固定、不可捲動：避免 iOS 主畫面模式的整頁拖動與高度誤差，捲動只發生在各畫面內部 */
+html, body { height: 100%; margin: 0; overflow: hidden; }
 body {
+  position: fixed; inset: 0; width: 100%;
   background: var(--outer);
   color: var(--ink);
   font-family: var(--font);
@@ -47,11 +49,9 @@ svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
 
 /* ---------- 外框：手機寬度置中 ---------- */
 .app {
-  position: relative;
-  width: 100%;
+  position: fixed;
+  inset: 0;              /* 貼齊實際可視區四邊，不靠 100vh / 100dvh 的回報值 */
   max-width: var(--app-w);
-  height: 100vh;
-  height: 100dvh;
   margin: 0 auto;
   background: var(--bg);
   overflow: hidden;
@@ -414,6 +414,7 @@ svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
 .cat-handle svg { width: 24px; height: 24px; }
 .cat-name { flex: 1; padding-left: 4px; }
 .hint { margin: 24px 24px 0; font-size: 14px; color: var(--ink-light); text-align: center; line-height: 1.6; }
+.hint-small { margin-top: 10px; font-size: 11px; opacity: .8; }
 
 /* ---------- 搜尋 ---------- */
 .search-box {

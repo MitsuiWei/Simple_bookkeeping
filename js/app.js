@@ -751,6 +751,10 @@
     $('#set-last-backup').textContent = last ? '上次備份：' + fmtSlash(last) : '尚未備份';
     $('#set-count').textContent = Store.records.length + ' 筆紀錄';
     $('#set-persist').textContent = ui.persisted === true ? '已持久儲存' : ui.persisted === false ? '未持久儲存' : '';
+    // 診斷用：視窗與螢幕尺寸，判斷留白是在網頁內還是網頁外
+    const standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+    const app = $('#app').getBoundingClientRect();
+    $('#set-viewport').textContent = `視窗 ${window.innerWidth}×${window.innerHeight}｜App ${Math.round(app.width)}×${Math.round(app.height)}｜螢幕 ${screen.width}×${screen.height}｜${standalone ? '主畫面模式' : '瀏覽器'}`;
   }
 
   function openSettings() { renderSettings(); openSub('settings'); }
