@@ -12,7 +12,8 @@
 
   const defaults = () => ({
     version: 1,
-    ledgerName: '簡單記帳',
+    ledgerName: '簡單記帳',  // App bar 顯示的帳本名稱
+    userName: '我',          // 匯出 CSV 的「記帳人」欄位、分類明細的標籤
     categories: { expense: DEFAULT_CATEGORIES.expense.slice(), income: DEFAULT_CATEGORIES.income.slice() },
     records: [],          // { id, ts, name, amount, type: 'expense'|'income', cat }
     lastCat: { expense: '', income: '' },

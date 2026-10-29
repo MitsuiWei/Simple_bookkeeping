@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-<!-- SVG 圖示庫（Material 風格線條，與截圖的圖示樣式一致） -->
+<!-- SVG 圖示庫（Material 風格，與原 App 的圖示樣式一致） -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
   <symbol id="i-settings" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></symbol>
   <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></symbol>
@@ -26,6 +26,7 @@
   <symbol id="i-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></symbol>
   <symbol id="i-chart" viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></symbol>
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></symbol>
   <symbol id="i-listnum" viewBox="0 0 24 24"><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"/></symbol>
   <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"/></symbol>
   <symbol id="i-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></symbol>
@@ -33,18 +34,20 @@
   <symbol id="i-backspace" viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></symbol>
   <symbol id="i-drag" viewBox="0 0 24 24"><path d="M20 9H4v2h16V9zM4 15h16v-2H4v2z"/></symbol>
   <symbol id="i-note" viewBox="0 0 24 24"><path d="M17 19.22H5V7h7V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-7h-2v7.22zM19 2h-2v3h-3v2h3v3h2V7h3V5h-3V2zM7 9h6v2H7zm0 3v2h8v-2zm0 3h8v2H7z"/></symbol>
-  <symbol id="i-delete" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></symbol>
+  <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></symbol>
+  <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></symbol>
+  <symbol id="i-person" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></symbol>
+  <symbol id="i-rename" viewBox="0 0 24 24"><path d="M3 5h12v2H3zm0 4h8v2H3zm0 4h12v2H3zm0 4h8v2H3zm14.7-7.3l1.4 1.4-6.6 6.6H11v-1.5l6.7-6.5zm1.4-1.4a1 1 0 0 1 1.4 0l.8.8a1 1 0 0 1 0 1.4l-.9.9-2.2-2.2.9-.9z"/></symbol>
+  <symbol id="i-storage" viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7s3.58 4 8 4 8-1.79 8-4-3.58-4-8-4zM4 9v3c0 2.21 3.58 4 8 4s8-1.79 8-4V9c0 2.21-3.58 4-8 4s-8-1.79-8-4zm0 5v3c0 2.21 3.58 4 8 4s8-1.79 8-4v-3c0 2.21-3.58 4-8 4s-8-1.79-8-4z"/></symbol>
 </svg>
 
 <div id="app" class="app">
 
-  <!-- ===== 新增 / 編輯紀錄 ===== -->
+  <!-- ===== 新增紀錄 ===== -->
   <section class="view is-active" id="view-add" data-tab="add">
     <header class="appbar">
-      <button class="icon-btn appbar-back" id="add-back" aria-label="返回" hidden><svg><use href="#i-back"/></svg></button>
       <h1 class="appbar-title" id="add-title">簡單記帳</h1>
       <div class="appbar-actions">
-        <button class="icon-btn" id="add-delete" aria-label="刪除紀錄" hidden><svg><use href="#i-delete"/></svg></button>
         <button class="icon-btn" id="btn-settings" aria-label="設定"><svg><use href="#i-settings"/></svg></button>
       </div>
     </header>
@@ -109,9 +112,13 @@
         <span class="seg-divider"></span>
         <button class="seg-btn" data-type="income">收入</button>
       </div>
-      <button class="range-btn" id="ov-range" type="button">
-        <svg><use href="#i-calendar"/></svg><span id="ov-range-text"></span>
-      </button>
+      <div class="range-row">
+        <button class="icon-btn range-arrow" id="ov-prev" aria-label="前一天" hidden><svg><use href="#i-chev-left"/></svg></button>
+        <button class="range-btn" id="ov-range" type="button">
+          <svg><use href="#i-calendar"/></svg><span id="ov-range-text"></span>
+        </button>
+        <button class="icon-btn range-arrow" id="ov-next" aria-label="後一天" hidden><svg><use href="#i-chev-right"/></svg></button>
+      </div>
       <div class="chips chips-center" id="ov-presets">
         <button class="chip" data-preset="today">本日</button>
         <button class="chip" data-preset="week">本週</button>
@@ -126,6 +133,20 @@
       <div id="ov-content"></div>
     </div>
     <button class="fab" id="btn-search" aria-label="搜尋"><svg><use href="#i-search"/></svg></button>
+  </section>
+
+  <!-- ===== 分類明細（圖表模式點分類列進入） ===== -->
+  <section class="view view-sub" id="view-catdetail" data-tab="overview">
+    <header class="appbar">
+      <button class="icon-btn appbar-back" id="detail-back" aria-label="返回"><svg><use href="#i-back"/></svg></button>
+      <h1 class="appbar-title" id="detail-title"></h1>
+      <div class="appbar-actions">
+        <button class="icon-btn" id="detail-range" aria-label="選擇日期區間"><svg><use href="#i-calendar"/></svg></button>
+      </div>
+    </header>
+    <div class="view-body view-scroll">
+      <div id="detail-list"></div>
+    </div>
   </section>
 
   <!-- ===== 編輯類別 ===== -->
@@ -173,46 +194,49 @@
     </div>
   </section>
 
-  <!-- ===== 設定（補充設計：截圖只有齒輪圖示，頁面內容依同一套設計語言補齊） ===== -->
+  <!-- ===== 設定：列表樣式依原 App；只保留本 App 用得到的項目 ===== -->
   <section class="view view-sub" id="view-settings" data-tab="add">
     <header class="appbar">
       <button class="icon-btn appbar-back" id="settings-back" aria-label="返回"><svg><use href="#i-back"/></svg></button>
-      <h1 class="appbar-title">設定</h1>
+      <h1 class="appbar-title" id="settings-title">設定</h1>
     </header>
     <div class="view-body view-scroll">
-      <label class="field">
-        <span class="field-label">帳本名稱</span>
-        <input class="field-input" id="set-ledger" type="text" placeholder="簡單記帳" autocomplete="off" maxlength="20">
-      </label>
-
-      <div class="card">
-        <div class="card-row">
-          <div>
-            <div class="card-title">匯出備份</div>
-            <div class="card-sub" id="set-last-backup">尚未備份</div>
-          </div>
-          <button class="btn" id="set-export">匯出備份</button>
-        </div>
+      <div class="set-group">
+        <button class="set-row" id="set-username">
+          <svg><use href="#i-person"/></svg>
+          <span class="set-main">編輯使用者名稱</span>
+          <span class="set-value" id="set-username-val"></span>
+          <svg class="set-chev"><use href="#i-chev-right"/></svg>
+        </button>
+        <button class="set-row" id="set-ledger">
+          <svg><use href="#i-rename"/></svg>
+          <span class="set-main">重新命名帳本</span>
+          <span class="set-value" id="set-ledger-val"></span>
+          <svg class="set-chev"><use href="#i-chev-right"/></svg>
+        </button>
+        <button class="set-row" id="set-mode">
+          <svg><use href="#i-chart"/></svg>
+          <span class="set-main">總覽圖表模式</span>
+          <svg class="set-chev set-mode-icon"><use href="#i-chart"/></svg>
+        </button>
       </div>
 
-      <div class="card">
-        <div class="card-row">
-          <div>
-            <div class="card-title">匯入 CSV</div>
-            <div class="card-sub">支援 UTF-8（含 BOM）與 Big5</div>
-          </div>
-          <button class="btn" id="set-import">選擇檔案</button>
-          <input type="file" id="set-file" class="visually-hidden" accept=".csv,text/csv,text/plain">
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-row">
-          <div>
-            <div class="card-title">資料</div>
-            <div class="card-sub" id="set-count">0 筆紀錄</div>
-          </div>
-          <span class="card-sub" id="set-persist"></span>
+      <div class="set-group">
+        <button class="set-row" id="set-export">
+          <svg><use href="#i-download"/></svg>
+          <span class="set-main">匯出備份<span class="set-sub" id="set-last-backup">尚未備份</span></span>
+          <svg class="set-chev"><use href="#i-chev-right"/></svg>
+        </button>
+        <button class="set-row" id="set-import">
+          <svg><use href="#i-upload"/></svg>
+          <span class="set-main">匯入 CSV<span class="set-sub">支援 UTF-8（含 BOM）與 Big5，可合併或覆蓋</span></span>
+          <svg class="set-chev"><use href="#i-chev-right"/></svg>
+        </button>
+        <input type="file" id="set-file" class="visually-hidden" accept=".csv,text/csv,text/plain">
+        <div class="set-row">
+          <svg><use href="#i-storage"/></svg>
+          <span class="set-main">資料<span class="set-sub" id="set-count">0 筆紀錄</span></span>
+          <span class="set-value" id="set-persist"></span>
         </div>
       </div>
 

@@ -38,6 +38,7 @@ input, select, button, textarea { font: inherit; color: inherit; }
 button { background: none; border: 0; padding: 0; cursor: pointer; }
 input, textarea { -webkit-user-select: text; user-select: text; }
 svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
+[hidden] { display: none !important; }
 
 .visually-hidden {
   position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0;
@@ -238,9 +239,13 @@ svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
 .key-ok { grid-column: 5; grid-row: 2 / span 3; font-size: 24px; }
 
 /* ---------- 總覽 ---------- */
+.range-row { display: flex; align-items: center; justify-content: center; margin-top: 16px; min-height: 40px; }
+.range-arrow { width: 40px; height: 40px; color: var(--ink); }
+.range-arrow[hidden] { display: none; }
+.range-arrow svg { width: 24px; height: 24px; }
 .range-btn {
-  display: flex; align-items: center; justify-content: center; gap: 14px;
-  width: 100%; margin-top: 20px; padding: 4px 16px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 14px;
+  padding: 4px 12px;
   color: var(--ink); font-size: 18px;
 }
 .range-btn svg { width: 24px; height: 24px; }
@@ -319,14 +324,17 @@ svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
 }
 .rec-amount { font-size: 20px; font-weight: 600; color: var(--ink); margin-left: 12px; white-space: nowrap; }
 
-/* 空狀態（補充設計） */
+/* 空狀態：插圖與原 App 相同 */
 .empty {
   padding: 48px 24px;
   text-align: center;
   color: var(--ink-light);
   font-size: 16px;
 }
-.empty-illu { width: 150px; height: 150px; margin: 48px auto 0; display: block; }
+.empty-wrap { padding-top: 48px; }
+.empty-illu { width: 150px; height: 150px; margin: 0 auto; display: block; }
+.rank-row { cursor: pointer; }
+.rank-row:active { background: rgba(0,0,0,.03); }
 
 /* ---------- FAB ---------- */
 .fab {
@@ -433,25 +441,29 @@ svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
 .dd-dark { background-color: var(--ink); background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFEDD4'><path d='M7 10l5 5 5-5z'/></svg>"); }
 .dd-tan  { background-color: var(--tan); background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFEDD4'><path d='M7 10l5 5 5-5z'/></svg>"); }
 
-/* ---------- 設定頁卡片（補充設計） ---------- */
-.card {
+/* ---------- 設定頁：列表樣式與原 App 相同 ---------- */
+.set-group {
   margin: 16px 16px 0;
-  padding: 14px 18px;
   border-radius: 12px;
   background: var(--card);
+  overflow: hidden;
 }
-.card-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.card-title { font-size: 18px; font-weight: 600; color: var(--muted); }
-.card-sub { font-size: 14px; color: var(--ink-light); margin-top: 2px; }
-.btn {
-  height: 40px; padding: 0 18px;
-  border-radius: 14px;
-  background: var(--ink); color: var(--bar-text);
-  font-size: 17px; white-space: nowrap;
-  transition: filter .1s, transform .08s;
+.set-row {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%; min-height: 54px;
+  padding: 10px 16px;
+  text-align: left;
+  color: var(--muted);
+  font-size: 17px;
+  border-bottom: 1px solid rgba(0,0,0,.05);
 }
-.btn:active { filter: brightness(.92); transform: scale(.97); }
-.btn-tan { background: var(--tan); }
+.set-row:last-child { border-bottom: 0; }
+button.set-row:active { background: rgba(0,0,0,.04); }
+.set-row > svg { width: 22px; height: 22px; color: var(--muted); }
+.set-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.set-sub { font-size: 12px; color: var(--ink-light); margin-top: 2px; line-height: 1.4; }
+.set-value { font-size: 15px; color: var(--ink-light); max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.set-row > .set-chev { width: 20px; height: 20px; color: var(--ink-light); }
 
 /* ---------- 對話框 ---------- */
 .dialog-scrim {
@@ -474,7 +486,27 @@ svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
   animation: popIn .2s var(--ease);
 }
 @keyframes popIn { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+.dialog-title { font-size: 20px; font-weight: 700; text-align: center; color: var(--muted); }
 .dialog-text { font-size: 20px; line-height: 1.5; word-break: break-word; }
+
+/* 編輯帳目對話框 */
+.edit-top { display: flex; align-items: center; justify-content: center; gap: 20px; margin-top: 16px; }
+.edit-top .chip { height: 32px; padding: 0 18px; font-size: 17px; }
+.edit-top .date-btn { font-size: 16px; padding: 0; }
+.edit-top .date-btn svg { width: 22px; height: 22px; }
+.edit-cats { padding: 0; margin-top: 12px; gap: 8px; justify-content: center; }
+.edit-cats .chip { height: 28px; padding: 0 12px; font-size: 14px; }
+.dialog .field-dialog { margin: 14px 0 0; height: 50px; padding: 0 16px; }
+.dialog .field-dialog .field-label { font-size: 16px; }
+.dialog .field-dialog .field-input { font-size: 17px; }
+.dialog .field-dialog .field-input[type="number"] { -moz-appearance: textfield; }
+.dialog .field-dialog .field-input::-webkit-outer-spin-button,
+.dialog .field-dialog .field-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.dialog.is-edit .dialog-actions { margin-top: 22px; }
+.dialog-link {
+  display: block; margin: 16px auto 0;
+  font-size: 14px; color: var(--ink-light); text-decoration: underline;
+}
 .dialog-text small { display: block; margin-top: 8px; font-size: 15px; color: var(--ink-light); }
 .dialog-input {
   width: 100%; height: 48px; margin-top: 16px; padding: 0 14px;
@@ -496,21 +528,22 @@ svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
 .dialog-btn.is-danger { background: #B88A7E; }
 .dialog-btn:active { filter: brightness(.92); }
 
-/* ---------- Toast（補充設計） ---------- */
+/* ---------- 底部提示橫條（與原 App 的「已儲存」相同） ---------- */
 .toast {
   position: absolute;
-  left: 50%; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 20px);
-  transform: translate(-50%, 10px);
-  padding: 9px 18px;
-  border-radius: 18px;
-  background: var(--ink); color: var(--bar-text);
+  left: 12px; right: 12px;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 12px);
+  transform: translateY(12px);
+  padding: 14px 16px;
+  border-radius: 6px;
+  background: #5F6156; color: var(--bar-text);
   font-size: 15px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.15);
   opacity: 0; pointer-events: none;
   transition: opacity .2s, transform .2s var(--ease);
   z-index: 60;
-  white-space: nowrap;
 }
-.toast.is-show { opacity: 1; transform: translate(-50%, 0); }
+.toast.is-show { opacity: 1; transform: none; }
 
 /* 鍵盤出現時避免版面抖動 */
 @media (max-height: 640px) {

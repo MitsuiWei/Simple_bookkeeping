@@ -4,23 +4,37 @@
 
   const $ = (s, el) => (el || document).querySelector(s);
   const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
-  const { dateKey, fromDateKey, startOfDay, endOfDay, fmtSlash, fmtZh, fmtShortSlash, fmtRelative, fmtMoney, fmtPct, fmtExpr } = Fmt;
+  const { dateKey, fromDateKey, startOfDay, endOfDay, fmtSlash, fmtZh, fmtZhWeekday, fmtShortSlash, fmtRelative, fmtMoney, fmtPct, fmtExpr } = Fmt;
 
   const TYPE_LABEL = { expense: '支出', income: '收入' };
   const PLACEHOLDER = { expense: '花在哪裡？', income: '錢從哪裡來？' };
-  /* 依排名給色（與截圖一致：第 1 名 tan、第 2 名 sage…） */
+  /* 依排名給色（與原 App 一致：第 1 名 tan、第 2 名 sage…） */
   const RANK_COLORS = ['#CEB99E', '#B3C1B4', '#BBB59B', '#C1B58B', '#C09E83', '#C7A99A', '#C9B0B8', '#B9C0C6', '#D3C4A2', '#AFC0B5', '#D4B8A6', '#C4C0A0'];
+
+  /* 空狀態插圖（總覽沒有資料、搜尋尚未輸入時使用） */
+  const EMPTY_ILLU = `<svg class="empty-illu" viewBox="0 0 160 160" aria-hidden="true">
+    <circle cx="84" cy="86" r="64" fill="#F2E1CD"/>
+    <path d="M44 30h64a8 8 0 0 1 8 8v6H52v-6a8 8 0 0 1-8-8z" fill="#7E8072"/>
+    <rect x="52" y="38" width="64" height="88" rx="4" fill="#FFFFFF"/>
+    <rect x="63" y="52" width="36" height="5" rx="2.5" fill="#7E8072"/>
+    <rect x="63" y="68" width="28" height="5" rx="2.5" fill="#7E8072"/>
+    <rect x="63" y="84" width="22" height="5" rx="2.5" fill="#7E8072"/>
+    <path d="M40 126h66a8 8 0 0 1 8 8v2H48a8 8 0 0 1-8-8z" fill="#7E8072"/>
+    <circle cx="112" cy="96" r="19" fill="#FFFFFF" stroke="#7E8072" stroke-width="5"/>
+    <path d="M126 110l14 14" stroke="#7E8072" stroke-width="7" stroke-linecap="round"/>
+  </svg>`;
 
   const ui = {
     tab: 'add',            // 底部導覽：'add' | 'overview'
-    sub: null,             // 'categories' | 'search' | 'settings' | 'edit' | null
+    sub: null,             // 'categories' | 'search' | 'settings' | 'catdetail' | null
     type: 'expense',       // 新增頁類型
     expr: '',              // 計算機運算式
     date: dateKey(Date.now()),
-    edit: null,            // 編輯中的紀錄
     ovType: 'expense',
     preset: 'month',
+    anchor: startOfDay(Date.now()), // 本日模式目前看的那一天
     custom: null,          // 自訂區間 { start, end }
+    detailCat: '',
     catType: 'expense', catWork: [], catRenames: [],
     persisted: null
   };
@@ -40,19 +54,17 @@
      任何時候最多只有一筆額外紀錄（subPushed），避免連續開關造成狀態錯亂。 */
   function openSub(name) {
     ui.sub = name;
-    showView(name === 'edit' ? 'add' : name);
+    showView(name);
     try {
       if (!ui.subPushed) { history.pushState({ sub: true }, ''); ui.subPushed = true; }
       else history.replaceState({ sub: true }, '');
     } catch (e) { /* file:// 下可能失敗，忽略 */ }
   }
 
-  /** 真正關閉子畫面 */
   function performClose() {
     if (!ui.sub) return;
     const was = ui.sub;
     ui.sub = null;
-    if (was === 'edit') resetForm();
     if (was === 'categories') { ui.catWork = []; ui.catRenames = []; }
     showView(ui.tab);
     if (ui.tab === 'overview') renderOverview();
@@ -70,6 +82,7 @@
   window.addEventListener('popstate', () => {
     if (ui.ignorePop) { ui.ignorePop = false; ui.subPushed = false; return; }
     ui.subPushed = false;
+    if ($('.dialog-scrim')) { $$('.dialog-scrim').forEach(s => s.remove()); return; }
     if (ui.sub) performClose();
   });
 
@@ -78,20 +91,29 @@
   }
 
   /**
-   * 對話框（樣式沿用截圖 6 的匯出確認框）
-   * opt: { text | html, body?: Element, buttons: [{ label, kind?: 'secondary'|'danger', onClick?(api) → 回傳 true 表示不關閉 }], dismissable?: boolean }
+   * 對話框
+   * opt: { text | html, title?, body?: Element, buttons: [{ label, kind?: 'secondary'|'danger', onClick?(api) → 回傳 true 表示不關閉 }],
+   *        dismissable?: boolean, className?: string }
    */
   function showDialog(opt) {
     const root = $('#dialog-root');
     const scrim = document.createElement('div');
     scrim.className = 'dialog-scrim';
     const box = document.createElement('div');
-    box.className = 'dialog';
+    box.className = 'dialog' + (opt.className ? ' ' + opt.className : '');
     box.setAttribute('role', 'dialog');
-    const text = document.createElement('div');
-    text.className = 'dialog-text';
-    if (opt.html) text.innerHTML = opt.html; else text.textContent = opt.text || '';
-    box.appendChild(text);
+    if (opt.title) {
+      const h = document.createElement('div');
+      h.className = 'dialog-title';
+      h.textContent = opt.title;
+      box.appendChild(h);
+    }
+    if (opt.html || opt.text) {
+      const text = document.createElement('div');
+      text.className = 'dialog-text';
+      if (opt.html) text.innerHTML = opt.html; else text.textContent = opt.text || '';
+      box.appendChild(text);
+    }
     if (opt.body) box.appendChild(opt.body);
     const actions = document.createElement('div');
     actions.className = 'dialog-actions';
@@ -108,10 +130,11 @@
       actions.appendChild(btn);
     });
     box.appendChild(actions);
+    if (opt.footer) box.appendChild(opt.footer);
     scrim.appendChild(box);
     scrim.addEventListener('click', e => { if (e.target === scrim && opt.dismissable !== false) api.close(); });
     root.appendChild(scrim);
-    const input = box.querySelector('input[type="text"]');
+    const input = box.querySelector('input.dialog-input');
     if (input) setTimeout(() => input.focus(), 50);
     return api;
   }
@@ -127,25 +150,32 @@
 
   function updateTitles() {
     const name = Store.get('ledgerName') || '簡單記帳';
-    if (!ui.edit) $('#add-title').textContent = name;
+    $('#add-title').textContent = name;
     $('#ov-title').textContent = name + '總覽';
+    $('#settings-title').textContent = name + '設定';
+  }
+
+  /** 任何資料變動後，重畫目前看得到的清單 */
+  function refreshLists() {
+    if (ui.tab === 'overview') renderOverview();
+    if (ui.sub === 'catdetail') renderCatDetail();
+    if (ui.sub === 'search') renderSearch();
+    if (ui.sub === 'settings') renderSettings();
   }
 
   /* =====================================================
-     新增 / 編輯紀錄
+     新增紀錄
      ===================================================== */
   function currentCat() {
     const list = Store.getCategories(ui.type);
     const last = Store.get('lastCat')[ui.type];
-    if (ui.edit && list.includes(ui.edit.cat)) return ui.edit.cat;
     return list.includes(last) ? last : (list[0] || '');
   }
 
   function renderAddCats() {
     const list = Store.getCategories(ui.type);
     const cur = currentCat();
-    const box = $('#add-cats');
-    box.innerHTML = list.map(c =>
+    $('#add-cats').innerHTML = list.map(c =>
       `<button type="button" class="chip chip-cat${c === cur ? ' is-active' : ''}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</button>`
     ).join('') + `<button type="button" class="chip chip-edit" id="add-edit-cats"><svg><use href="#i-edit"/></svg>編輯</button>`;
   }
@@ -163,7 +193,6 @@
     const lastCat = Store.get('lastCat');
     lastCat[ui.type] = cat;
     Store.set('lastCat', lastCat);
-    if (ui.edit) ui.edit.cat = cat;
     $$('.chip-cat').forEach(b => b.classList.toggle('is-active', b.dataset.cat === cat));
   }
 
@@ -219,82 +248,38 @@
     return Math.round(total * 100) / 100;
   }
 
+  /** 日期（YYYY-MM-DD）＋ 某個時間戳的時分秒 → 新時間戳 */
+  function combineDate(dayKey, clockTs) {
+    const clock = new Date(clockTs);
+    return fromDateKey(dayKey) + ((clock.getHours() * 60 + clock.getMinutes()) * 60 + clock.getSeconds()) * 1000;
+  }
+
   function submitRecord() {
     const amount = evaluate(ui.expr);
     if (!isFinite(amount) || amount <= 0) { toast('請輸入金額'); return; }
     const cat = currentCat();
     if (!cat) { toast('請先建立一個類別'); return; }
     const name = $('#add-name').value.trim() || cat;
-    const dayStart = fromDateKey(ui.date);
-    const clock = ui.edit ? new Date(ui.edit.ts) : new Date();
-    const ts = dayStart + ((clock.getHours() * 60 + clock.getMinutes()) * 60 + clock.getSeconds()) * 1000;
-
-    if (ui.edit) {
-      Store.updateRecord(ui.edit.id, { ts, name, amount, type: ui.type, cat });
-      toast('已更新 ' + fmtMoney(amount));
-      goBack();
-    } else {
-      Store.addRecord({ ts, name, amount, type: ui.type, cat });
-      toast('已儲存 ' + fmtMoney(amount));
-      resetForm(true);
-    }
-    checkEmptyHints();
+    Store.addRecord({ ts: combineDate(ui.date, Date.now()), name, amount, type: ui.type, cat });
+    toast('已儲存');
+    resetForm();
   }
 
-  function resetForm(keepType) {
-    const wasEdit = !!ui.edit;
-    ui.edit = null;
+  function resetForm() {
     ui.expr = '';
     ui.date = dateKey(Date.now());
     $('#add-name').value = '';
-    if (!keepType && wasEdit) setType(ui.type); else renderAddCats();
     updateAmount();
     updateDateLabel();
-    $('#add-back').hidden = true;
-    $('#add-delete').hidden = true;
-    $('#btn-settings').hidden = false;
-    updateTitles();
-  }
-
-  /** 從總覽 / 搜尋點選紀錄 → 編輯（補充設計：截圖未出現編輯畫面，沿用新增頁） */
-  function openEdit(rec) {
-    ui.edit = Object.assign({}, rec);
-    ui.expr = String(rec.amount);
-    ui.date = dateKey(rec.ts);
-    setType(rec.type);
-    $('#add-name').value = rec.name;
-    updateAmount();
-    updateDateLabel();
-    $('#add-title').textContent = '編輯紀錄';
-    $('#add-back').hidden = false;
-    $('#add-delete').hidden = false;
-    $('#btn-settings').hidden = true;
-    openSub('edit');
-  }
-
-  function confirmDelete() {
-    if (!ui.edit) return;
-    const rec = ui.edit;
-    showDialog({
-      html: `要刪除「${escapeHtml(rec.name)}」${fmtMoney(rec.amount)} 這筆紀錄嗎？<small>刪除後無法復原。</small>`,
-      buttons: [
-        { label: '取消', kind: 'secondary' },
-        { label: '刪除', kind: 'danger', onClick() { Store.deleteRecord(rec.id); toast('已刪除'); goBack(); } }
-      ]
-    });
   }
 
   function bindAddView() {
     $('#add-seg').addEventListener('click', e => {
       const b = e.target.closest('.seg-btn');
-      if (b && b.dataset.type !== ui.type) {
-        setType(b.dataset.type);
-        if (ui.edit) ui.edit.type = b.dataset.type;
-      }
+      if (b && b.dataset.type !== ui.type) setType(b.dataset.type);
     });
     $('#add-cats').addEventListener('click', e => {
-      const edit = e.target.closest('#add-edit-cats');
-      if (edit) { openCategories(ui.type); return; }
+      if (e.target.closest('#add-edit-cats')) { openCategories(ui.type); return; }
       const b = e.target.closest('.chip-cat');
       if (b) selectCat(b.dataset.cat);
     });
@@ -302,17 +287,88 @@
       const k = e.target.closest('.key');
       if (k) pressKey(k.dataset.k);
     });
-    $('#add-date-btn').addEventListener('click', () => {
-      const inp = $('#add-date');
-      try { if (inp.showPicker) inp.showPicker(); else inp.click(); } catch (e) { inp.click(); }
-    });
+    $('#add-date-btn').addEventListener('click', () => openDatePicker($('#add-date')));
     $('#add-date').addEventListener('change', e => {
       if (fromDateKey(e.target.value) != null) { ui.date = e.target.value; updateDateLabel(); }
     });
     $('#add-name').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
     $('#btn-settings').addEventListener('click', openSettings);
-    $('#add-back').addEventListener('click', goBack);
-    $('#add-delete').addEventListener('click', confirmDelete);
+  }
+
+  function openDatePicker(input) {
+    try { if (input.showPicker) input.showPicker(); else input.click(); } catch (e) { input.click(); }
+  }
+
+  /* =====================================================
+     編輯帳目（對話框，與原 App 相同）
+     ===================================================== */
+  function openEditDialog(rec) {
+    const draft = { cat: rec.cat, date: dateKey(rec.ts) };
+    const cats = Store.getCategories(rec.type);
+    if (!cats.includes(draft.cat)) cats.unshift(draft.cat);
+
+    const body = document.createElement('div');
+    body.className = 'edit-body';
+    body.innerHTML = `
+      <div class="edit-top">
+        <button type="button" class="chip" id="ed-cat">${escapeHtml(draft.cat)}</button>
+        <button type="button" class="date-btn" id="ed-date"><svg><use href="#i-calendar"/></svg><span>${fmtRelative(rec.ts)}</span></button>
+        <input type="date" id="ed-date-input" class="visually-hidden" tabindex="-1" value="${draft.date}">
+      </div>
+      <div class="chips edit-cats" id="ed-cats" hidden>${cats.map(c => `<button type="button" class="chip${c === draft.cat ? ' is-active' : ''}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join('')}</div>
+      <label class="field field-dialog"><span class="field-label">內容</span><input class="field-input" id="ed-name" type="text" value="${escapeHtml(rec.name)}" autocomplete="off"></label>
+      <label class="field field-dialog"><span class="field-label">金額（$）</span><input class="field-input" id="ed-amount" type="number" inputmode="decimal" min="0" step="any" value="${rec.amount}"></label>`;
+
+    const footer = document.createElement('button');
+    footer.type = 'button';
+    footer.className = 'dialog-link';
+    footer.textContent = '刪除這筆紀錄';
+
+    const api = showDialog({
+      title: '編輯帳目',
+      className: 'is-edit',
+      body,
+      footer,
+      buttons: [{
+        label: '儲存',
+        onClick() {
+          const amount = Math.round(parseFloat($('#ed-amount', body).value) * 100) / 100;
+          if (!isFinite(amount) || amount <= 0) { toast('請輸入金額'); return true; }
+          const name = $('#ed-name', body).value.trim() || draft.cat;
+          Store.updateRecord(rec.id, { ts: combineDate(draft.date, rec.ts), name, amount, cat: draft.cat });
+          toast('已儲存');
+          refreshLists();
+        }
+      }]
+    });
+
+    // 類別：點 chip 展開選單（補充設計：原 App 的選法未在影片出現）
+    $('#ed-cat', body).addEventListener('click', () => { const el = $('#ed-cats', body); el.hidden = !el.hidden; });
+    $('#ed-cats', body).addEventListener('click', e => {
+      const b = e.target.closest('.chip');
+      if (!b) return;
+      draft.cat = b.dataset.cat;
+      $('#ed-cat', body).textContent = draft.cat;
+      $$('.chip', $('#ed-cats', body)).forEach(c => c.classList.toggle('is-active', c.dataset.cat === draft.cat));
+      $('#ed-cats', body).hidden = true;
+    });
+    // 日期
+    $('#ed-date', body).addEventListener('click', () => openDatePicker($('#ed-date-input', body)));
+    $('#ed-date-input', body).addEventListener('change', e => {
+      if (fromDateKey(e.target.value) == null) return;
+      draft.date = e.target.value;
+      $('#ed-date span', body).textContent = fmtRelative(fromDateKey(draft.date));
+    });
+    // 刪除
+    footer.addEventListener('click', () => {
+      showDialog({
+        html: `要刪除「${escapeHtml(rec.name)}」${fmtMoney(rec.amount)} 這筆紀錄嗎？<small>刪除後無法復原。</small>`,
+        buttons: [
+          { label: '取消', kind: 'secondary' },
+          { label: '刪除', kind: 'danger', onClick() { Store.deleteRecord(rec.id); api.close(); toast('已刪除'); refreshLists(); } }
+        ]
+      });
+    });
   }
 
   /* =====================================================
@@ -322,7 +378,7 @@
     const now = Date.now();
     const d = new Date(now);
     switch (ui.preset) {
-      case 'today': return { start: startOfDay(now), end: endOfDay(now) };
+      case 'today': return { start: ui.anchor, end: endOfDay(ui.anchor) };
       case 'week': {
         const s = new Date(startOfDay(now));
         s.setDate(s.getDate() - ((s.getDay() + 6) % 7)); // 週一為一週開始
@@ -344,11 +400,12 @@
     return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
   }
 
-  function recordRow(r) {
+  /** 清單列；tag 預設為類別，分類明細頁改顯示記帳人 */
+  function recordRow(r, tag) {
     return `<div class="rec-row" data-id="${r.id}">
       <div class="rec-main">
         <div class="rec-name">${escapeHtml(r.name)}</div>
-        <div class="rec-meta"><span>${fmtSlash(r.ts)}</span><span class="rec-tag">${escapeHtml(r.cat)}</span></div>
+        <div class="rec-meta"><span>${fmtSlash(r.ts)}</span><span class="rec-tag">${escapeHtml(tag == null ? r.cat : tag)}</span></div>
       </div>
       <div class="rec-amount">${fmtMoney(r.amount)}</div>
     </div>`;
@@ -356,7 +413,12 @@
 
   function renderOverview() {
     const { start, end } = getRange();
-    $('#ov-range-text').innerHTML = `<span>${fmtZh(start)}</span><span class="range-to">至</span><span>${fmtZh(end)}</span>`;
+    const isDay = ui.preset === 'today';
+    $('#ov-range-text').innerHTML = isDay
+      ? `<span>${fmtZhWeekday(start)}</span>`
+      : `<span>${fmtZh(start)}</span><span class="range-to">至</span><span>${fmtZh(end)}</span>`;
+    $('#ov-prev').hidden = !isDay;
+    $('#ov-next').hidden = !isDay;
     $$('#ov-presets .chip').forEach(c => c.classList.toggle('is-active', c.dataset.preset === ui.preset));
     const seg = $('#ov-seg');
     seg.dataset.active = ui.ovType;
@@ -374,13 +436,9 @@
 
     const recs = all.filter(r => r.type === ui.ovType);
     const box = $('#ov-content');
-    if (!recs.length) {
-      // 補充設計：空狀態
-      box.innerHTML = `<div class="empty">這段期間沒有${TYPE_LABEL[ui.ovType]}紀錄</div>`;
-      return;
-    }
+    if (!recs.length) { box.innerHTML = `<div class="empty-wrap">${EMPTY_ILLU}</div>`; return; }
     if (mode === 'list') {
-      box.innerHTML = recs.sort((a, b) => b.ts - a.ts).map(recordRow).join('');
+      box.innerHTML = recs.sort((a, b) => b.ts - a.ts).map(r => recordRow(r)).join('');
       return;
     }
     const groups = new Map();
@@ -390,7 +448,7 @@
       const pct = total ? amt / total * 100 : 0;
       const color = RANK_COLORS[i % RANK_COLORS.length];
       const width = Math.min(58 + pct * 2.36, 250);
-      return `<div class="rank-row">
+      return `<div class="rank-row" data-cat="${escapeHtml(cat)}">
         <div class="rank-name"><i class="rank-bar" style="width:${width.toFixed(1)}px;background:${hexToRgba(color, .28)}"></i><span>${escapeHtml(cat)}</span></div>
         <div class="rank-amount">${fmtMoney(amt)}</div>
         <div class="rank-badge" style="background:${color}">${fmtPct(pct)}</div>
@@ -417,6 +475,7 @@
             ui.custom = { start: s, end: endOfDay(e) };
             ui.preset = 'custom';
             renderOverview();
+            if (ui.sub === 'catdetail') renderCatDetail();
           }
         }
       ]
@@ -433,7 +492,7 @@
         { label: '取消' },
         {
           label: '確認', onClick() {
-            CSV.download(`簡單記帳_${dateKey(start)}_${dateKey(end)}.csv`, CSV.recordsToCSV(recs, Store.get('ledgerName')));
+            CSV.download(`簡單記帳_${dateKey(start)}_${dateKey(end)}.csv`, CSV.recordsToCSV(recs, Store.get('userName')));
             toast('已匯出 ' + recs.length + ' 筆');
           }
         }
@@ -451,8 +510,11 @@
       if (!c) return;
       if (c.dataset.preset === 'custom') { openCustomRange(); return; }
       ui.preset = c.dataset.preset;
+      if (ui.preset === 'today') ui.anchor = startOfDay(Date.now());
       renderOverview();
     });
+    $('#ov-prev').addEventListener('click', () => shiftDay(-1));
+    $('#ov-next').addEventListener('click', () => shiftDay(1));
     $('#ov-range').addEventListener('click', openCustomRange);
     $('#ov-mode').addEventListener('click', () => {
       Store.set('overviewMode', Store.get('overviewMode') === 'list' ? 'chart' : 'list');
@@ -461,26 +523,50 @@
     $('#ov-export').addEventListener('click', exportRange);
     $('#ov-content').addEventListener('click', e => {
       const row = e.target.closest('.rec-row');
-      if (row) { const rec = Store.getRecord(row.dataset.id); if (rec) openEdit(rec); }
+      if (row) { const rec = Store.getRecord(row.dataset.id); if (rec) openEditDialog(rec); return; }
+      const rank = e.target.closest('.rank-row');
+      if (rank) openCatDetail(rank.dataset.cat);
     });
     $('#btn-search').addEventListener('click', openSearch);
+  }
+
+  function shiftDay(delta) {
+    const d = new Date(ui.anchor);
+    d.setDate(d.getDate() + delta);
+    ui.anchor = startOfDay(d.getTime());
+    renderOverview();
+  }
+
+  /* =====================================================
+     分類明細
+     ===================================================== */
+  function openCatDetail(cat) {
+    ui.detailCat = cat;
+    renderCatDetail();
+    openSub('catdetail');
+  }
+
+  function renderCatDetail() {
+    const { start, end } = getRange();
+    const recs = Store.query({ type: ui.ovType, cat: ui.detailCat, start, end }).sort((a, b) => b.ts - a.ts);
+    const total = recs.reduce((s, r) => s + r.amount, 0);
+    $('#detail-title').textContent = `${ui.detailCat}：${fmtMoney(total)}`;
+    const who = Store.get('userName') || '我';
+    $('#detail-list').innerHTML = recs.length ? recs.map(r => recordRow(r, who)).join('') : `<div class="empty-wrap">${EMPTY_ILLU}</div>`;
+  }
+
+  function bindCatDetail() {
+    $('#detail-back').addEventListener('click', goBack);
+    $('#detail-range').addEventListener('click', openCustomRange);
+    $('#detail-list').addEventListener('click', e => {
+      const row = e.target.closest('.rec-row');
+      if (row) { const rec = Store.getRecord(row.dataset.id); if (rec) openEditDialog(rec); }
+    });
   }
 
   /* =====================================================
      搜尋
      ===================================================== */
-  const EMPTY_ILLU = `<svg class="empty-illu" viewBox="0 0 160 160" aria-hidden="true">
-    <circle cx="84" cy="86" r="64" fill="#F2E1CD"/>
-    <path d="M44 30h64a8 8 0 0 1 8 8v6H52v-6a8 8 0 0 1-8-8z" fill="#7E8072"/>
-    <rect x="52" y="38" width="64" height="88" rx="4" fill="#FFFFFF"/>
-    <rect x="63" y="52" width="36" height="5" rx="2.5" fill="#7E8072"/>
-    <rect x="63" y="68" width="28" height="5" rx="2.5" fill="#7E8072"/>
-    <rect x="63" y="84" width="22" height="5" rx="2.5" fill="#7E8072"/>
-    <path d="M40 126h66a8 8 0 0 1 8 8v2H48a8 8 0 0 1-8-8z" fill="#7E8072"/>
-    <circle cx="112" cy="96" r="19" fill="#FFFFFF" stroke="#7E8072" stroke-width="5"/>
-    <path d="M126 110l14 14" stroke="#7E8072" stroke-width="7" stroke-linecap="round"/>
-  </svg>`;
-
   function fillSearchCats() {
     const type = $('#search-type').value;
     const sel = $('#search-cat');
@@ -495,11 +581,11 @@
     const cat = $('#search-cat').value;
     const months = +$('#search-period').value;
     const box = $('#search-results');
-    if (!kw && !cat) { box.innerHTML = EMPTY_ILLU; return; }
+    if (!kw && !cat) { box.innerHTML = `<div class="empty-wrap">${EMPTY_ILLU}</div>`; return; }
     let start = null;
     if (months > 0) { const d = new Date(); d.setMonth(d.getMonth() - months); start = startOfDay(d.getTime()); }
     const recs = Store.query({ type, cat, keyword: kw, start }).sort((a, b) => b.ts - a.ts);
-    box.innerHTML = recs.length ? recs.map(recordRow).join('') : '<div class="empty">找不到符合的紀錄</div>';
+    box.innerHTML = recs.length ? recs.map(r => recordRow(r)).join('') : '<div class="empty">找不到符合的紀錄</div>';
   }
 
   function openSearch() {
@@ -518,7 +604,7 @@
     $('#search-period').addEventListener('change', renderSearch);
     $('#search-results').addEventListener('click', e => {
       const row = e.target.closest('.rec-row');
-      if (row) { const rec = Store.getRecord(row.dataset.id); if (rec) openEdit(rec); }
+      if (row) { const rec = Store.getRecord(row.dataset.id); if (rec) openEditDialog(rec); }
     });
   }
 
@@ -541,9 +627,10 @@
       </div>`).join('');
   }
 
-  function askCatName(opt) {
+  /** 文字輸入對話框 */
+  function askText(opt) {
     const body = document.createElement('div');
-    body.innerHTML = `<input class="dialog-input" type="text" maxlength="10" placeholder="類別名稱" value="${escapeHtml(opt.value || '')}">`;
+    body.innerHTML = `<input class="dialog-input" type="text" maxlength="${opt.maxlength || 20}" placeholder="${escapeHtml(opt.placeholder || '')}" value="${escapeHtml(opt.value || '')}">`;
     const buttons = [];
     if (opt.onDelete) buttons.push({ label: '刪除', kind: 'danger', onClick() { opt.onDelete(); } });
     buttons.push({ label: '取消', kind: 'secondary' });
@@ -551,8 +638,7 @@
       label: '儲存', onClick(api) {
         const v = $('input', api.el).value.trim();
         if (!v) { toast('請輸入名稱'); return true; }
-        if (ui.catWork.some((c, i) => c === v && i !== opt.index)) { toast('已有相同名稱'); return true; }
-        opt.onSave(v);
+        return opt.onSave(v);
       }
     });
     showDialog({ text: opt.title, body, buttons });
@@ -561,11 +647,11 @@
   function editCategory(index) {
     const name = ui.catWork[index];
     if (ui.sub !== 'categories' || typeof name !== 'string') return;
-    askCatName({
-      title: '編輯類別', value: name, index,
+    askText({
+      title: '編輯類別', value: name, placeholder: '類別名稱', maxlength: 10,
       onSave(v) {
+        if (ui.catWork.some((c, i) => c === v && i !== index)) { toast('已有相同名稱'); return true; }
         if (v === name) return;
-        // 記錄改名，儲存時同步更新既有紀錄
         const prev = ui.catRenames.find(m => m.to === name);
         if (prev) prev.to = v; else ui.catRenames.push({ from: name, to: v });
         ui.catWork[index] = v;
@@ -592,7 +678,13 @@
       if (card) editCategory(+card.dataset.index);
     });
     $('#cat-add').addEventListener('click', () => {
-      askCatName({ title: '新增類別', index: -1, onSave(v) { ui.catWork.push(v); renderCatList(); } });
+      askText({
+        title: '新增類別', placeholder: '類別名稱', maxlength: 10,
+        onSave(v) {
+          if (ui.catWork.includes(v)) { toast('已有相同名稱'); return true; }
+          ui.catWork.push(v); renderCatList();
+        }
+      });
     });
     $('#cat-save').addEventListener('click', () => {
       if (ui.sub !== 'categories') return;
@@ -616,7 +708,7 @@
       const pitch = cards.length > 1 ? cards[1].getBoundingClientRect().top - cards[0].getBoundingClientRect().top : rect.height + 18;
       drag = { card, cards, index: +card.dataset.index, startY: e.clientY, pitch, target: +card.dataset.index };
       card.classList.add('is-dragging');
-      try { handle.setPointerCapture(e.pointerId); } catch (err) { /* 部分瀏覽器不支援，忽略 */ }
+      try { handle.setPointerCapture(e.pointerId); } catch (err) { /* 忽略 */ }
       e.preventDefault();
     });
     list.addEventListener('pointermove', e => {
@@ -649,14 +741,16 @@
   }
 
   /* =====================================================
-     設定（補充設計）：帳本名稱、匯出備份、匯入 CSV
+     設定
      ===================================================== */
   function renderSettings() {
-    $('#set-ledger').value = Store.get('ledgerName') || '';
+    $('#set-username-val').textContent = Store.get('userName') || '';
+    $('#set-ledger-val').textContent = Store.get('ledgerName') || '';
+    $('.set-mode-icon use').setAttribute('href', Store.get('overviewMode') === 'list' ? '#i-listnum' : '#i-chart');
     const last = Store.get('lastBackup');
     $('#set-last-backup').textContent = last ? '上次備份：' + fmtSlash(last) : '尚未備份';
     $('#set-count').textContent = Store.records.length + ' 筆紀錄';
-    $('#set-persist').textContent = ui.persisted === true ? '已啟用持久儲存' : ui.persisted === false ? '持久儲存未啟用' : '';
+    $('#set-persist').textContent = ui.persisted === true ? '已持久儲存' : ui.persisted === false ? '未持久儲存' : '';
   }
 
   function openSettings() { renderSettings(); openSub('settings'); }
@@ -665,7 +759,7 @@
     const recs = Store.records;
     if (!recs.length) { toast('還沒有任何紀錄'); return; }
     const now = Date.now();
-    CSV.download(`記帳備份_${dateKey(now)}.csv`, CSV.recordsToCSV(recs, Store.get('ledgerName')));
+    CSV.download(`記帳備份_${dateKey(now)}.csv`, CSV.recordsToCSV(recs, Store.get('userName')));
     Store.set('lastBackup', now);
     Store.save(true);
     renderSettings();
@@ -700,9 +794,6 @@
           { label: '合併', onClick() { const n = Store.mergeRecords(parsed.records); afterImport('已合併，新增 ' + n + ' 筆'); } }
         ]
       });
-      if (parsed.ledgerName && !Store.get('ledgerNameTouched')) {
-        /* 帳本名稱維持使用者設定，不自動覆蓋；只記錄一次提示 */
-      }
     }).catch(err => {
       console.error(err);
       showDialog({ text: '讀取檔案失敗，請再試一次。', buttons: [{ label: '確定' }] });
@@ -713,17 +804,26 @@
     toast(msg);
     renderSettings();
     renderAddCats();
-    checkEmptyHints();
   }
 
   function bindSettings() {
     $('#settings-back').addEventListener('click', goBack);
-    $('#set-ledger').addEventListener('change', e => {
-      const v = e.target.value.trim() || '簡單記帳';
-      e.target.value = v;
-      Store.set('ledgerName', v);
-      Store.set('ledgerNameTouched', true);
-      updateTitles();
+    $('#set-username').addEventListener('click', () => {
+      askText({
+        title: '編輯使用者名稱', value: Store.get('userName'), placeholder: '記帳人名稱',
+        onSave(v) { Store.set('userName', v); renderSettings(); toast('已儲存'); }
+      });
+    });
+    $('#set-ledger').addEventListener('click', () => {
+      askText({
+        title: '重新命名帳本', value: Store.get('ledgerName'), placeholder: '帳本名稱',
+        onSave(v) { Store.set('ledgerName', v); updateTitles(); renderSettings(); toast('已儲存'); }
+      });
+    });
+    $('#set-mode').addEventListener('click', () => {
+      Store.set('overviewMode', Store.get('overviewMode') === 'list' ? 'chart' : 'list');
+      renderSettings();
+      toast(Store.get('overviewMode') === 'list' ? '總覽預設為清單' : '總覽預設為圖表');
     });
     $('#set-export').addEventListener('click', exportBackup);
     $('#set-import').addEventListener('click', () => $('#set-file').click());
@@ -756,8 +856,6 @@
     });
   }
 
-  function checkEmptyHints() { /* 預留：未來可在空資料時顯示引導 */ }
-
   /* =====================================================
      底部導覽與啟動
      ===================================================== */
@@ -766,7 +864,7 @@
       const b = e.target.closest('.nav-btn');
       if (!b) return;
       const tab = b.dataset.tab;
-      if (ui.sub) { ui.sub = null; if (ui.edit) resetForm(); ui.catWork = []; ui.catRenames = []; }
+      if (ui.sub) { ui.sub = null; ui.catWork = []; ui.catRenames = []; }
       ui.tab = tab;
       showView(tab);
       if (tab === 'overview') renderOverview();
@@ -776,6 +874,7 @@
   function init() {
     bindAddView();
     bindOverview();
+    bindCatDetail();
     bindSearch();
     bindCategories();
     bindSettings();

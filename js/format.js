@@ -32,6 +32,12 @@
     return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
   }
 
+  /** 2026年10月29日 星期四（本日模式用） */
+  function fmtZhWeekday(ts) {
+    const d = new Date(ts);
+    return fmtZh(ts) + ' 星期' + ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
+  }
+
   /** 2026/10/1（不補零，匯出對話框用） */
   function fmtShortSlash(ts) {
     const d = new Date(ts);
@@ -69,5 +75,5 @@
     return expr.replace(/\//g, '÷').replace(/\*/g, '×').replace(/-/g, '−');
   }
 
-  global.Fmt = { pad2, dateKey, fromDateKey, startOfDay, endOfDay, fmtSlash, fmtZh, fmtShortSlash, fmtRelative, fmtMoney, fmtPct, fmtExpr };
+  global.Fmt = { pad2, dateKey, fromDateKey, startOfDay, endOfDay, fmtSlash, fmtZh, fmtZhWeekday, fmtShortSlash, fmtRelative, fmtMoney, fmtPct, fmtExpr };
 })(window);
