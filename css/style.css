@@ -61,6 +61,18 @@ svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
 @media (min-width: 420px) {
   .app { box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 0 40px rgba(0,0,0,.12); }
 }
+/* iOS 加到主畫面後，狀態列顏色是取樣頁面最上緣「固定定位、全寬、不透明」的元素；
+   放一條棕色細帶在最上面（被 App bar 蓋住，看不到），讓狀態列跟 App bar 同色。 */
+@media (max-width: 419px) {
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 14px;
+    background: var(--bar);
+    z-index: 0;
+  }
+}
 
 /* ---------- 頁面切換 ---------- */
 .view {
@@ -82,6 +94,7 @@ svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
 /* ---------- App bar ---------- */
 .appbar {
   flex: none;
+  position: sticky; top: 0; z-index: 2;
   display: flex;
   align-items: center;
   gap: 8px;

@@ -1,6 +1,6 @@
 /* Service worker：預先快取所有檔案，離線也能開啟。
    更新程式時請把 VERSION 加 1，舊快取會自動清除。 */
-const VERSION = 'simple-ledger-v2';
+const VERSION = 'simple-ledger-v3';
 const ASSETS = [
   './',
   './index.html',

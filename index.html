@@ -12,7 +12,9 @@
 <link rel="apple-touch-icon" href="./icons/icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- 新版 iOS 的 black-translucent 會讓網頁少一截（底部留白），改用 default：
+     狀態列顏色由 iOS 取樣頁面最上緣的固定元素（見 style.css 的 body::before） -->
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="簡單記帳">
 <link rel="stylesheet" href="./css/style.css">
 </head>
